@@ -128,17 +128,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
 
-        // Предотвращение ввода нескольких операторов подряд
-        if ("+-*/".contains(btnText)) {
-            if (lastEqual) {
-                lastEqual = false;
-                tvExpression.setText(tvResult.getText());
-                resetTextSize();
-            }
-            if (data.isEmpty() || !lastNumeric || stateError) {
-                return;
-            }
-            lastNumeric = false;
+        // Проверка на недопустимые операторы и парность скобок
+        if (isInvalidOperatorSequence(data, btnText)) {
+            return;
         }
 
         if (btnText.equals(".")) {
@@ -200,6 +192,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void resetTextSize() {
         tvResult.setTextSize(48);
+    }
+
+    private boolean isInvalidOperatorSequence(String expression, String currentInput) {
+        // Проверка на последовательные операторы
+        if (expression.isEmpty() && isOperator(currentInput)) {
+            return true; // Нельзя начинать с оператора
+        }
+
+        // Последний символ выражения
+        char lastChar = expression.charAt(expression.length() - 1);
+
+        // Нельзя вводить два оператора подряд
+        if (isOperator(String.valueOf(lastChar)) && isOperator(currentInput)) {
+            return true;
+        }
+
+        // Проверка парности скобок
+        if (currentInput.equals(")")) {
+            int openBrackets = countOccurrences(expression, '(');
+            int closeBrackets = countOccurrences(expression, ')');
+            if (closeBrackets >= openBrackets) {
+                return true; // Нельзя закрывать больше скобок, чем открыто
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isOperator(String input) {
+        return input.equals("+") || input.equals("-") || input.equals("*") || input.equals("/");
+    }
+
+    private int countOccurrences(String input, char target) {
+        int count = 0;
+        for (char c : input.toCharArray()) {
+            if (c == target) {
+                count++;
+            }
+        }
+        return count;
     }
 
     @Override
